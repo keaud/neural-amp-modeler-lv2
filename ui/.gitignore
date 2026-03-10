@@ -1,0 +1,4 @@
+node_modules/
+.vite/
+index.js.map
+index.mjs.map

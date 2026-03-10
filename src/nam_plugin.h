@@ -24,6 +24,7 @@
 #include <NeuralAudio/NeuralModel.h>
 
 #include "tonestack.h"
+#include "pick_processor.h"
 
 #define PlUGIN_URI "http://github.com/mikeoliphant/neural-amp-modeler-lv2"
 #define MODEL_URI PlUGIN_URI "#model"
@@ -68,6 +69,7 @@ namespace NAM {
 			float* mid_freq;
 			float* treble;
 			float* treble_freq;
+			float* pick;
 		};
 
 		Ports ports = {};
@@ -133,5 +135,6 @@ namespace NAM {
 		uint32_t silentSamples = 0;
 		bool smartBypassed = true;
 		ToneStack toneStack;
+		PickProcessor pickProcessor;
 	};
 }

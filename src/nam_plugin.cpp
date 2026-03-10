@@ -45,6 +45,7 @@ namespace NAM {
 	{
 		this->sampleRate = sampleRate;
 		toneStack.setSampleRate(sampleRate);
+		pickProcessor.setSampleRate(sampleRate);
 
 		// for fetching initial options, can be null
 		LV2_Options_Option* options = nullptr;
@@ -325,6 +326,9 @@ namespace NAM {
 				ports.audio_out[i] = ports.audio_in[i] * level;
 			}
 		}
+
+		// Apply pick attack transient shaping (before amp model per spec)
+		pickProcessor.process(ports.audio_out, n_samples, *ports.pick);
 
 		float modelLoudnessAdjustmentDB = 0;
 

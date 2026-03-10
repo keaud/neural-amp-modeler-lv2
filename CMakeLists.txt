@@ -36,22 +36,36 @@ file(COPY resources/modgui DESTINATION neural_amp_modeler.lv2)
 configure_file(resources/manifest.ttl.in neural_amp_modeler.lv2/manifest.ttl)
 configure_file(resources/neural_amp_modeler.ttl.in neural_amp_modeler.lv2/neural_amp_modeler.ttl)
 
-install (DIRECTORY ${CMAKE_BINARY_DIR}/neural_amp_modeler.lv2
-       DESTINATION ${LIB_INSTALL_DIR}/lv2
+# Install to Signal Factory Devices directory
+set(DEVICE_ROOT_DIR "/opt/signal/Factory/Devices/NAM")
+set(LV2_BUNDLE_DIR "${DEVICE_ROOT_DIR}/contents/lv2/neural_amp_modeler.lv2")
+
+# Install LV2 bundle
+install(DIRECTORY ${CMAKE_BINARY_DIR}/neural_amp_modeler.lv2/
+    DESTINATION ${LV2_BUNDLE_DIR}
 )
 
-set(CPACK_GENERATOR "DEB")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "oliphant@nostatic.org>")
-set(CPACK_PACKAGE_VENDOR "Mike Oliphant")
-set(CPACK_PACKAGE_DESCRIPTION "Neural Amp Modeler LV2 plugin implementation")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Neural Amp Modeler LV2 plugin")
-set(CPACK_DEBIAN_PACKAGE_SECTION sound)
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-set(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION TRUE)
-set(CPACK_PACKAGING_INSTALL_PREFIX /usr)
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
-set (CPACK_STRIP_FILES ON)
+# Install device manifest
+install(FILES manifest.json
+    DESTINATION ${DEVICE_ROOT_DIR}
+)
 
-include(CPack)
+# Install presets
+install(DIRECTORY presets/
+    DESTINATION ${DEVICE_ROOT_DIR}/presets
+    FILES_MATCHING PATTERN "*.json"
+)
+
+# Install UI
+install(DIRECTORY ui/
+    DESTINATION ${DEVICE_ROOT_DIR}/ui
+    FILES_MATCHING PATTERN "*.vue" PATTERN "*.jpg" PATTERN "*.png"
+)
+
+# Tests
+enable_testing()
+add_executable(test_pick_processor tests/test_pick_processor.cpp)
+target_compile_features(test_pick_processor PRIVATE cxx_std_17)
+add_test(NAME PickProcessorTests COMMAND test_pick_processor)
+
+message(STATUS "NAM will install to: ${DEVICE_ROOT_DIR}")

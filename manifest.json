@@ -1,0 +1,121 @@
+{
+  "id": "com.signal.neural_amp_modeler",
+  "type": "device",
+  "displayName": "Neural Amp Modeler",
+  "vendorName": "Neural DSP",
+  "category": "Amp",
+  "version": "1.0.0",
+  "defaultPreset": "default",
+  "backend": {
+    "lv2": {
+      "bundle": "contents/lv2/neural_amp_modeler.lv2",
+      "uri": "http://github.com/mikeoliphant/neural-amp-modeler-lv2"
+    }
+  },
+  "params": {
+    "model": {
+      "sourcePortURI": "http://github.com/mikeoliphant/neural-amp-modeler-lv2#model",
+      "type": "path",
+      "displayName": "Neural Model",
+      "description": "Path to the .nam neural amp model file",
+      "fileTypes": ["nam", "nammodel", "json", "aidax", "aidadspmodel"]
+    },
+    "input_level": {
+      "sourcePortURI": "http://github.com/mikeoliphant/neural-amp-modeler-lv2#input_level",
+      "min": -20.0,
+      "max": 20.0,
+      "type": "float",
+      "default": 0.0,
+      "increment": 0.1,
+      "description": "Input level in decibels",
+      "displayName": "Input Lvl"
+    },
+    "output_level": {
+      "sourcePortURI": "http://github.com/mikeoliphant/neural-amp-modeler-lv2#output_level",
+      "min": -20.0,
+      "max": 20.0,
+      "type": "float",
+      "default": 0.0,
+      "increment": 0.1,
+      "description": "Output level in decibels",
+      "displayName": "Output Lvl"
+    },
+    "bass": {
+      "sourcePortURI": "http://github.com/mikeoliphant/neural-amp-modeler-lv2#bass",
+      "min": -20.0,
+      "max": 20.0,
+      "type": "float",
+      "default": 0.0,
+      "increment": 0.1,
+      "description": "Bass level in decibels",
+      "displayName": "Bass"
+    },
+    "bass_freq": {
+      "sourcePortURI": "http://github.com/mikeoliphant/neural-amp-modeler-lv2#bass_freq",
+      "min": 60.0,
+      "max": 500.0,
+      "type": "float",
+      "default": 250.0,
+      "increment": 1.0,
+      "logarithmic": true,
+      "description": "Bass frequency in Hz",
+      "displayName": "Bass Freq"
+    },
+    "mid": {
+      "sourcePortURI": "http://github.com/mikeoliphant/neural-amp-modeler-lv2#mid",
+      "min": -20.0,
+      "max": 20.0,
+      "type": "float",
+      "default": 0.0,
+      "increment": 0.1,
+      "description": "Mid level in decibels",
+      "displayName": "Mid"
+    },
+    "mid_freq": {
+      "sourcePortURI": "http://github.com/mikeoliphant/neural-amp-modeler-lv2#mid_freq",
+      "min": 200.0,
+      "max": 2000.0,
+      "type": "float",
+      "default": 800.0,
+      "increment": 1.0,
+      "logarithmic": true,
+      "description": "Mid frequency in Hz",
+      "displayName": "Mid Freq"
+    },
+    "treble": {
+      "sourcePortURI": "http://github.com/mikeoliphant/neural-amp-modeler-lv2#treble",
+      "min": -20.0,
+      "max": 20.0,
+      "type": "float",
+      "default": 0.0,
+      "increment": 0.1,
+      "description": "Treble level in decibels",
+      "displayName": "Treble"
+    },
+    "treble_freq": {
+      "sourcePortURI": "http://github.com/mikeoliphant/neural-amp-modeler-lv2#treble_freq",
+      "min": 1000.0,
+      "max": 8000.0,
+      "type": "float",
+      "default": 2500.0,
+      "increment": 1.0,
+      "logarithmic": true,
+      "description": "Treble frequency in Hz",
+      "displayName": "Treble Freq"
+    },
+    "pick": {
+      "sourcePortURI": "http://github.com/mikeoliphant/neural-amp-modeler-lv2#pick",
+      "min": -1.0,
+      "max": 1.0,
+      "type": "float",
+      "default": 0.0,
+      "increment": 0.01,
+      "description": "Pick attack transient shaping. Positive boosts attack, negative softens it.",
+      "displayName": "Pick Attack"
+    }
+  },
+  "customUI": {
+    "enabled": true,
+    "path": "ui/NAMDevice.vue"
+  }
+}

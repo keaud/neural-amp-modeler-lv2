@@ -1,0 +1,543 @@
+<template>
+  <div class="nam-ui">
+    <img src="/Factory/Devices/NAM/ui/nam-ui.jpg" alt="NAM UI" class="full-screen-image" />
+
+    <div class="model-display" @click="openModelBrowser">
+      <span class="model-label">{{ currentModel || 'No Model Loaded' }}</span>
+    </div>
+
+    <div class="neural-tube-container tube-gain">
+      <NeuralTube :width="72" :height="120" :rate="normalizeValue(inputLevelValue, 'input_level')" />
+    </div>
+
+    <div class="neural-tube-container tube-bass">
+      <NeuralTube :width="72" :height="120" :rate="normalizeValue(bassValue, 'bass')" />
+    </div>
+
+    <div class="neural-tube-container tube-mid">
+      <NeuralTube :width="72" :height="120" :rate="normalizeValue(midValue, 'mid')" />
+    </div>
+
+    <div class="neural-tube-container tube-treble">
+      <NeuralTube :width="72" :height="120" :rate="normalizeValue(trebleValue, 'treble')" />
+    </div>
+
+    <div class="neural-tube-container tube-volume">
+      <NeuralTube :width="72" :height="120" :rate="normalizeValue(outputLevelValue, 'output_level')" />
+    </div>
+    <div class="control-knobs">
+      <UIKnob class="knob-gain touchable" :indicatorOffset="20" :size="90" :model-value="inputLevelValue" :min="inputLevelMin" :max="inputLevelMax" @change="onGainChange" />
+      <UIKnob class="knob-bass touchable" :indicatorOffset="20" :size="90" :model-value="bassValue" :min="bassMin" :max="bassMax" @change="onBassChange" />
+      <UIKnob class="knob-mid touchable" :indicatorOffset="20" :size="90" :model-value="midValue" :min="midMin" :max="midMax" @change="onMidChange" />
+      <UIKnob class="knob-treble touchable" :indicatorOffset="20" :size="90" :model-value="trebleValue" :min="trebleMin" :max="trebleMax" @change="onTrebleChange" />
+      <UIKnob class="knob-volume touchable" :indicatorOffset="20" :size="90" :model-value="outputLevelValue" :min="outputLevelMin" :max="outputLevelMax" @change="onVolumeChange" />
+    </div>
+
+    <!-- File Browser Modal -->
+    <Teleport to="body">
+      <UIFileBrowser v-if="showModelBrowser" title="Select an Amp Model" root="/Models"
+        starting-folder="/Models" extension-regex="\.nam$" @file-selected="onModelSelected"
+        @close="closeModelBrowser" />
+    </Teleport>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import NeuralTube from './NeuralTube.vue';
+import {
+  useHardware,
+  updateEncoderLedsFromAssignments,
+  scaleEncoderValue,
+  normalizeValue as normalizeEncoderValue,
+} from 'signalSDK';
+
+const props = defineProps({
+  instanceId: String,
+  deviceInfo: Object
+});
+
+const status = ref(null);
+const currentModel = ref(null);
+const showModelBrowser = ref(false);
+const encoderUnsubscribes = ref([]);
+
+const sdk = window.signalSDK;
+const hardware = useHardware();
+
+// Get parameter values reactively from device in globalState
+const inputLevelValue = computed(() => {
+  const device = sdk?.getDeviceInstance(props.instanceId);
+  return device?.parameterValues?.['input_level'] ?? 0;
+});
+
+const outputLevelValue = computed(() => {
+  const device = sdk?.getDeviceInstance(props.instanceId);
+  return device?.parameterValues?.['output_level'] ?? 0;
+});
+
+const bassValue = computed(() => {
+  const device = sdk?.getDeviceInstance(props.instanceId);
+  return device?.parameterValues?.['bass'] ?? 0;
+});
+
+const midValue = computed(() => {
+  const device = sdk?.getDeviceInstance(props.instanceId);
+  return device?.parameterValues?.['mid'] ?? 0;
+});
+
+const trebleValue = computed(() => {
+  const device = sdk?.getDeviceInstance(props.instanceId);
+  return device?.parameterValues?.['treble'] ?? 0;
+});
+
+// Get parameter metadata for knob ranges
+function getParameterMetadata(paramName) {
+  if (!sdk) return { min: 0, max: 1 };
+  const systemState = sdk.getSystemState?.();
+  const devices = systemState?.devices;
+  if (!devices?.categories) return { min: 0, max: 1 };
+
+  let deviceDef = null;
+  for (const category of devices.categories) {
+    if (category.devices) {
+      deviceDef = category.devices.find(d => d.id === props.deviceInfo?.id);
+      if (deviceDef) break;
+    }
+  }
+
+  if (!deviceDef?.parameters?.[paramName]) {
+    return { min: 0, max: 1 };
+  }
+
+  const paramDef = deviceDef.parameters[paramName];
+  return {
+    min: paramDef.min ?? 0,
+    max: paramDef.max ?? 1
+  };
+}
+
+const inputLevelMeta = computed(() => getParameterMetadata('input_level'));
+const outputLevelMeta = computed(() => getParameterMetadata('output_level'));
+const bassMeta = computed(() => getParameterMetadata('bass'));
+const midMeta = computed(() => getParameterMetadata('mid'));
+const trebleMeta = computed(() => getParameterMetadata('treble'));
+
+const inputLevelMin = computed(() => inputLevelMeta.value?.min ?? 0);
+const inputLevelMax = computed(() => inputLevelMeta.value?.max ?? 1);
+const outputLevelMin = computed(() => outputLevelMeta.value?.min ?? 0);
+const outputLevelMax = computed(() => outputLevelMeta.value?.max ?? 1);
+const bassMin = computed(() => bassMeta.value?.min ?? -20);
+const bassMax = computed(() => bassMeta.value?.max ?? 20);
+const midMin = computed(() => midMeta.value?.min ?? -20);
+const midMax = computed(() => midMeta.value?.max ?? 20);
+const trebleMin = computed(() => trebleMeta.value?.min ?? -20);
+const trebleMax = computed(() => trebleMeta.value?.max ?? 20);
+
+// Normalize a denormalized parameter value to 0-1 range for visual feedback
+function normalizeValue(value, paramName) {
+  let min, max;
+  switch (paramName) {
+    case 'input_level':
+      min = inputLevelMeta.value?.min ?? 0;
+      max = inputLevelMeta.value?.max ?? 1;
+      break;
+    case 'output_level':
+      min = outputLevelMeta.value?.min ?? 0;
+      max = outputLevelMeta.value?.max ?? 1;
+      break;
+    case 'bass':
+      min = bassMeta.value?.min ?? -20;
+      max = bassMeta.value?.max ?? 20;
+      break;
+    case 'mid':
+      min = midMeta.value?.min ?? -20;
+      max = midMeta.value?.max ?? 20;
+      break;
+    case 'treble':
+      min = trebleMeta.value?.min ?? -20;
+      max = trebleMeta.value?.max ?? 20;
+      break;
+    default:
+      return 0;
+  }
+  return normalizeEncoderValue(value, min, max);
+}
+
+// Handle gain knob change - directly mutate parameterValues
+// The centralized parameter sync watcher will pick this up and send to API
+function onGainChange(event) {
+  const device = sdk.getDeviceInstance(props.instanceId);
+  if (device?.parameterValues) {
+    device.parameterValues['input_level'] = event.value;
+    // Update encoder LED brightness
+    setEncoderLedWithBrightness(0, normalizeValue(event.value, 'input_level'));
+  }
+}
+
+// Handle volume knob change - directly mutate parameterValues
+// The centralized parameter sync watcher will pick this up and send to API
+function onVolumeChange(event) {
+  const device = sdk.getDeviceInstance(props.instanceId);
+  if (device?.parameterValues) {
+    device.parameterValues['output_level'] = event.value;
+    // Update encoder LED brightness
+    setEncoderLedWithBrightness(4, normalizeValue(event.value, 'output_level'));
+  }
+}
+
+function onBassChange(event) {
+  const device = sdk.getDeviceInstance(props.instanceId);
+  if (device?.parameterValues) {
+    device.parameterValues['bass'] = event.value;
+    setEncoderLedWithBrightness(1, normalizeValue(event.value, 'bass'));
+  }
+}
+
+function onMidChange(event) {
+  const device = sdk.getDeviceInstance(props.instanceId);
+  if (device?.parameterValues) {
+    device.parameterValues['mid'] = event.value;
+    setEncoderLedWithBrightness(2, normalizeValue(event.value, 'mid'));
+  }
+}
+
+function onTrebleChange(event) {
+  const device = sdk.getDeviceInstance(props.instanceId);
+  if (device?.parameterValues) {
+    device.parameterValues['treble'] = event.value;
+    setEncoderLedWithBrightness(3, normalizeValue(event.value, 'treble'));
+  }
+}
+
+// Show temporary status message
+function showStatus(message, type = 'info') {
+  status.value = { message, type };
+
+  // Auto-hide after 3 seconds if success, 5 seconds if error
+  const duration = type === 'error' ? 5000 : 3000;
+  setTimeout(() => {
+    status.value = null;
+  }, duration);
+}
+
+// Open model browser
+function openModelBrowser() {
+  showModelBrowser.value = true;
+}
+
+// Close model browser
+function closeModelBrowser() {
+  showModelBrowser.value = false;
+}
+
+// Handle model selection from file browser
+function onModelSelected(fileInfo) {
+  try {
+    // Update the display immediately (strip .nam extension)
+    currentModel.value = fileInfo.name.replace(/\.nam$/, '');
+
+    // Update state property directly - the centralized state sync watcher
+    // will pick this up and send it to the API
+    const modelPath = fileInfo.path;
+    const device = sdk.getDeviceInstance(props.instanceId);
+    if (device?.stateProperties) {
+      // Update both the full URI key and the simple 'model' key for compatibility
+      device.stateProperties['http://github.com/mikeoliphant/neural-amp-modeler-lv2#model'] = modelPath;
+      device.stateProperties['model'] = modelPath;
+    }
+
+    showStatus(`Model loaded: ${fileInfo.name}`, 'success');
+  } catch (error) {
+    console.error('[NAM] Failed to load model:', error);
+    showStatus('Failed to load model', 'error');
+    currentModel.value = null;
+  }
+}
+
+// Setup encoder subscriptions for all parameters
+// Encoder 0: input_level, Encoder 1: bass, Encoder 2: mid, Encoder 3: treble, Encoder 4: output_level
+function setupEncoderSubscriptions() {
+  // Unsubscribe from previous encoders
+  encoderUnsubscribes.value.forEach(unsub => unsub?.());
+  encoderUnsubscribes.value = [];
+
+  if (!hardware) {
+    console.warn('[NAM] Hardware not available');
+    return;
+  }
+
+  const device = sdk?.getDeviceInstance(props.instanceId);
+  if (!device?.parameterValues) {
+    console.warn('[NAM] Device instance not available');
+    return;
+  }
+
+  // Encoder 0 (first knob) - control input_level
+  const unsubInput = hardware.onEncoderRotate(0, (event) => {
+    const currentValue = device.parameterValues['input_level'] ?? 0;
+    const newValue = scaleEncoderValue(currentValue, event.delta, inputLevelMin.value, inputLevelMax.value);
+    device.parameterValues['input_level'] = newValue;
+    console.log('[NAM] Updated input_level to', newValue);
+    setEncoderLedWithBrightness(0, normalizeValue(newValue, 'input_level'));
+  });
+  encoderUnsubscribes.value.push(unsubInput);
+
+  // Encoder 4 (fifth knob) - control output_level
+  const unsubOutput = hardware.onEncoderRotate(4, (event) => {
+    const currentValue = device.parameterValues['output_level'] ?? 0;
+    const newValue = scaleEncoderValue(currentValue, event.delta, outputLevelMin.value, outputLevelMax.value);
+    device.parameterValues['output_level'] = newValue;
+    console.log('[NAM] Updated output_level to', newValue);
+    setEncoderLedWithBrightness(4, normalizeValue(newValue, 'output_level'));
+  });
+  encoderUnsubscribes.value.push(unsubOutput);
+
+  // Encoder 1 (second knob) - control bass
+  const unsubBass = hardware.onEncoderRotate(1, (event) => {
+    const currentValue = device.parameterValues['bass'] ?? 0;
+    const newValue = scaleEncoderValue(currentValue, event.delta, bassMin.value, bassMax.value);
+    device.parameterValues['bass'] = newValue;
+    console.log('[NAM] Updated bass to', newValue);
+    setEncoderLedWithBrightness(1, normalizeValue(newValue, 'bass'));
+  });
+  encoderUnsubscribes.value.push(unsubBass);
+
+  // Encoder 2 (third knob) - control mid
+  const unsubMid = hardware.onEncoderRotate(2, (event) => {
+    const currentValue = device.parameterValues['mid'] ?? 0;
+    const newValue = scaleEncoderValue(currentValue, event.delta, midMin.value, midMax.value);
+    device.parameterValues['mid'] = newValue;
+    console.log('[NAM] Updated mid to', newValue);
+    setEncoderLedWithBrightness(2, normalizeValue(newValue, 'mid'));
+  });
+  encoderUnsubscribes.value.push(unsubMid);
+
+  // Encoder 3 (fourth knob) - control treble
+  const unsubTreble = hardware.onEncoderRotate(3, (event) => {
+    const currentValue = device.parameterValues['treble'] ?? 0;
+    const newValue = scaleEncoderValue(currentValue, event.delta, trebleMin.value, trebleMax.value);
+    device.parameterValues['treble'] = newValue;
+    console.log('[NAM] Updated treble to', newValue);
+    setEncoderLedWithBrightness(3, normalizeValue(newValue, 'treble'));
+  });
+  encoderUnsubscribes.value.push(unsubTreble);
+
+  console.log('[NAM] Encoder subscriptions set up: encoder 0 (input_level), encoder 1 (bass), encoder 2 (mid), encoder 3 (treble), encoder 4 (output_level)');
+}
+
+// Set a single encoder LED with brightness-scaled cyan
+// brightness is 0-1, scales the base cyan color accordingly
+function setEncoderLedWithBrightness(encoderIndex, brightness) {
+  // Base RGB for cyan (#008B8B)
+  const baseR = 0;
+  const baseG = 139;
+  const baseB = 139;
+
+  // Clamp brightness to 0-1
+  const clampedBrightness = Math.max(0, Math.min(1, brightness));
+
+  // Scale RGB by brightness
+  const r = Math.round(baseR * clampedBrightness);
+  const g = Math.round(baseG * clampedBrightness);
+  const b = Math.round(baseB * clampedBrightness);
+
+  hardware.setEncoderLed(encoderIndex, r, g, b, 0)
+    .then(() => {
+      console.log(`[NAM] Set encoder ${encoderIndex} LED brightness to ${Math.round(clampedBrightness * 100)}%`);
+    })
+    .catch(err => {
+      console.warn(`[NAM] Failed to set encoder ${encoderIndex} LED:`, err);
+    });
+}
+
+// Update all encoder LEDs based on current parameter values
+function updateAllEncoderLeds() {
+  const device = sdk?.getDeviceInstance(props.instanceId);
+  if (!device) return;
+
+  // Encoder 0: input_level
+  const inputVal = normalizeValue(device.parameterValues?.['input_level'] ?? 0, 'input_level');
+  setEncoderLedWithBrightness(0, inputVal);
+
+  // Encoder 1: bass
+  setEncoderLedWithBrightness(1, normalizeValue(device.parameterValues?.['bass'] ?? 0, 'bass'));
+
+  // Encoder 2: mid
+  setEncoderLedWithBrightness(2, normalizeValue(device.parameterValues?.['mid'] ?? 0, 'mid'));
+
+  // Encoder 3: treble
+  setEncoderLedWithBrightness(3, normalizeValue(device.parameterValues?.['treble'] ?? 0, 'treble'));
+
+  // Encoder 4: output_level
+  const outputVal = normalizeValue(device.parameterValues?.['output_level'] ?? 0, 'output_level');
+  setEncoderLedWithBrightness(4, outputVal);
+}
+
+// Initialize component
+onMounted(async () => {
+  try {
+    // Set encoder LEDs to NAM-specific color with brightness based on values
+    updateAllEncoderLeds();
+
+    // Get the device instance to load initial model state
+    const device = sdk.getDeviceInstance(props.instanceId);
+
+    if (device?.stateProperties) {
+      // Try both the full URI key and the simple 'model' key
+      const modelPath = device.stateProperties['http://github.com/mikeoliphant/neural-amp-modeler-lv2#model']
+                     || device.stateProperties['model'];
+      if (modelPath) {
+        // Extract just the filename from the path and strip .nam extension
+        // e.g., "Amps/TraynorYGL3.nam" -> "TraynorYGL3"
+        const fileName = modelPath.split('/').pop();
+        currentModel.value = fileName?.replace(/\.nam$/, '');
+      }
+    }
+
+    // Setup encoder subscriptions
+    setupEncoderSubscriptions();
+
+    showStatus('NAM UI Ready', 'success');
+  } catch (error) {
+    console.error('[NAM] Initialization failed:', error);
+    showStatus(`Error: ${error.message}`, 'error');
+  }
+});
+
+// Cleanup subscriptions on unmount
+onUnmounted(() => {
+  encoderUnsubscribes.value.forEach(unsub => unsub?.());
+  encoderUnsubscribes.value = [];
+
+  // Restore footswitch LED colors
+  updateEncoderLedsFromAssignments();
+});
+</script>
+
+<style>
+.nam-ui .model-display {
+  position: absolute;
+  top: 56px;
+  left: 240px;
+  width: 700px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.nam-ui .model-label {
+  color: white;
+  font-size: 23px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  position: absolute;
+  top: 25px;
+  left: 36px;
+  text-overflow: ellipsis;
+  max-width: 500px;
+  pointer-events: none;
+}
+
+
+.nam-ui {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  /* Adjust up a little bit to even out visual centering */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.nam-ui .full-screen-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.nam-ui .neural-tube-container {
+  position: absolute;
+  z-index: 10;
+}
+
+.nam-ui .tube-gain {
+  top: 265px;
+  left: 463px;
+}
+
+.nam-ui .tube-bass {
+  top: 265px;
+  left: 670px;
+}
+
+.nam-ui .tube-mid {
+  top: 265px;
+  left: 869px;
+}
+
+.nam-ui .tube-treble {
+  top: 265px;
+  left: 1058px;
+}
+
+.nam-ui .tube-volume {
+  top: 265px;
+  left: 1270px;
+}
+
+.nam-ui .control-knobs {
+  position: absolute;
+  top: 465px;
+  left: 0px;
+  display: block;
+}
+
+.nam-ui .control-knobs .knob-container {
+  position: absolute;
+  top: 16px;
+}
+
+.nam-ui .control-knobs .knob-gain {
+  left: 335px;
+}
+
+.nam-ui .control-knobs .knob-bass {
+  left: 594px;
+}
+
+.nam-ui .control-knobs .knob-mid {
+  left: 844px;
+}
+
+.nam-ui .control-knobs .knob-treble {
+  left: 1095px;
+}
+
+.nam-ui .control-knobs .knob-volume {
+  left: 1367px;
+}
+
+.nam-ui .control-knobs .knob-arc {
+  display: none;
+}
+.nam-ui .control-knobs .knob-base {
+  display:none;
+}
+
+.nam-ui .control-knobs .knob-indicator {
+  background-color: #000;
+}
+</style>

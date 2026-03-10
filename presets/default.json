@@ -1,0 +1,18 @@
+{
+  "presetName": "Default",
+  "deviceId": "com.signal.neural_amp_modeler",
+  "version": 1,
+  "params": {
+    "input_level": 0,
+    "output_level": 0,
+    "model": "Models/Factory/Amps/Traynor YGL3 Boost.nam"
+  },
+  "metadata": {
+    "author": "Factory",
+    "tags": [
+      "factory",
+      "default"
+    ],
+    "createdAt": "2025-11-28T00:00:00"
+  }
+}
