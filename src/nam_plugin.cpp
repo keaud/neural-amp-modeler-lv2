@@ -44,6 +44,7 @@ namespace NAM {
 	bool Plugin::initialize(double sampleRate, const LV2_Feature* const* features) noexcept
 	{
 		this->sampleRate = sampleRate;
+		toneStack.setSampleRate(sampleRate);
 
 		// for fetching initial options, can be null
 		LV2_Options_Option* options = nullptr;
@@ -333,6 +334,10 @@ namespace NAM {
 
 			modelLoudnessAdjustmentDB = currentModel->GetRecommendedOutputDBAdjustment();
 		}
+
+		// Apply tone stack EQ
+		toneStack.update(*ports.bass, *ports.bass_freq, *ports.mid, *ports.mid_freq, *ports.treble, *ports.treble_freq);
+		toneStack.process(ports.audio_out, n_samples);
 
 		// Convert output level from db
 		float desiredOutputLevel = powf(10, (*(ports.output_level) + modelLoudnessAdjustmentDB) * 0.05f);

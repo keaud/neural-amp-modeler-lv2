@@ -23,6 +23,8 @@
 
 #include <NeuralAudio/NeuralModel.h>
 
+#include "tonestack.h"
+
 #define PlUGIN_URI "http://github.com/mikeoliphant/neural-amp-modeler-lv2"
 #define MODEL_URI PlUGIN_URI "#model"
 
@@ -60,6 +62,12 @@ namespace NAM {
 			float* audio_out;
 			float* input_level;
 			float* output_level;
+			float* bass;
+			float* bass_freq;
+			float* mid;
+			float* mid_freq;
+			float* treble;
+			float* treble_freq;
 		};
 
 		Ports ports = {};
@@ -124,5 +132,6 @@ namespace NAM {
 		float bypassThresholdLinear = 0;
 		uint32_t silentSamples = 0;
 		bool smartBypassed = true;
+		ToneStack toneStack;
 	};
 }

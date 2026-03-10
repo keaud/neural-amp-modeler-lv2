@@ -33,7 +33,8 @@ add_subdirectory(../deps/NeuralAudio NeuralAudio)
 
 set(SOURCES nam_lv2.cpp
 	nam_plugin.cpp
-	nam_plugin.h)
+	nam_plugin.h
+	tonestack.h)
 
 set(NA_SOURCES ../deps/NeuralAudio/NeuralAudio/NeuralModel.h)
 
