@@ -17,10 +17,10 @@ public:
 		for (uint32_t i = 0; i < n_samples; i++) {
 			float x = buffer[i];
 
-			// 1. Detection high-pass filter (1-pole HPF on detection path only)
-			float detect = x - hpfState;
-			hpfState += hpfCoeff * detect;
-			detect = x - hpfState;
+			// 1. Detection high-pass filter (~1.2kHz, detection path only)
+			float detect = x - detectHpfState;
+			detectHpfState += detectHpfCoeff * detect;
+			detect = x - detectHpfState;
 
 			// 2. Envelope follower
 			float absDetect = fabsf(detect);
@@ -35,18 +35,28 @@ public:
 				attack = 0.0f;
 			prevEnvelope = envelope;
 
-			// 4. Attack strength
-			float attackStrength = attack * sensitivity;
+			// 4. Transient envelope (always positive)
+			transientEnv += attack * sensitivity;
+			transientEnv *= decayCoeff;
 
-			// 5. Transient envelope generation
-			transientState += attackStrength * pickAmount;
-			transientState *= decayCoeff;
+			// 5. Audio-path HPF at ~2kHz to isolate bright/pick content
+			float lpf = audioLpfState + audioHpfCoeff * (x - audioLpfState);
+			audioLpfState = lpf;
+			float bright = x - lpf;
 
-			// 6. Gain calculation (soft limiter)
-			float gain = 1.0f + tanhf(transientState);
+			// 6. Modulate bright content during transients
+			//    tanhf(transientEnv) is 0..1, pickAmount is -1..1
+			//    positive pickAmount: boost bright during transients
+			//    negative pickAmount: cut bright during transients (max 50%)
+			float mod = tanhf(transientEnv) * pickAmount;
 
-			// 7. Output
-			buffer[i] = x * gain;
+			float brightGain;
+			if (mod >= 0.0f)
+				brightGain = mod;            // boost: 0 to ~1.0 (doubles bright)
+			else
+				brightGain = mod * 0.5f;     // cut: 0 to -0.5 (halves bright)
+
+			buffer[i] = x + brightGain * bright;
 		}
 	}
 
@@ -54,25 +64,31 @@ private:
 	void recalcCoefficients() {
 		releaseCoeff = expf(-1.0f / (releaseTime * (float)sampleRate));
 		decayCoeff = expf(-1.0f / (decayTime * (float)sampleRate));
-		hpfCoeff = 1.0f - expf(-2.0f * (float)M_PI * detectHpfFreq / (float)sampleRate);
+		detectHpfCoeff = 1.0f - expf(-2.0f * (float)M_PI * detectHpfFreq / (float)sampleRate);
+		audioHpfCoeff = 1.0f - expf(-2.0f * (float)M_PI * audioHpfFreq / (float)sampleRate);
 	}
 
 	double sampleRate = 48000.0;
 
-	// Internal parameters (defaults from spec)
+	// Internal parameters
 	float sensitivity = 6.0f;
 	float decayTime = 0.015f;      // 15 ms
 	float releaseTime = 0.010f;    // 10 ms
-	float detectHpfFreq = 1200.0f; // Hz
+	float detectHpfFreq = 1200.0f; // Hz - detection path
+	float audioHpfFreq = 2000.0f;  // Hz - audio path crossover
 
 	// Coefficients
 	float releaseCoeff = 0.0f;
 	float decayCoeff = 0.0f;
-	float hpfCoeff = 0.0f;
+	float detectHpfCoeff = 0.0f;
+	float audioHpfCoeff = 0.0f;
 
-	// State
-	float hpfState = 0.0f;
+	// Detection state
+	float detectHpfState = 0.0f;
 	float envelope = 0.0f;
 	float prevEnvelope = 0.0f;
-	float transientState = 0.0f;
+	float transientEnv = 0.0f;
+
+	// Audio path state
+	float audioLpfState = 0.0f;
 };

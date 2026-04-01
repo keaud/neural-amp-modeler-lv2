@@ -48,17 +48,18 @@ class Particle {
   }
 
   adjustedSpeed() {
-    return config.speed + (2 * props.rate);
+    return this.speed + (2 * props.rate);
   }
 
   adjustedSwirl() {
-    return config.swirl + (2 * props.rate);
+    return this.swirlSpeed + (2 * props.rate);
   }
 
   reset() {
     this.z = Math.random();
     this.angle = Math.random() * Math.PI * 2;
     this.speed = (Math.random() * 0.6 + 0.4) * config.speed;
+    this.swirlSpeed = (Math.random() * 0.6 + 0.4) * config.swirl;
     this.alpha = 0;
     this.size = Math.random() * 1.2 + 0.6;
     this.yOffset = Math.random() * 2 - 1;

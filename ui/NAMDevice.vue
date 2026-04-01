@@ -7,30 +7,30 @@
     </div>
 
     <div class="neural-tube-container tube-gain">
-      <NeuralTube :width="72" :height="120" :rate="normalizeValue(inputLevelValue, 'input_level')" />
+      <NeuralTube :width="102" :height="160" :rate="normalizeValue(inputLevelValue, 'input_level')" />
     </div>
 
     <div class="neural-tube-container tube-bass">
-      <NeuralTube :width="72" :height="120" :rate="normalizeValue(bassValue, 'bass')" />
+      <NeuralTube :width="102" :height="160" :rate="normalizeValue(bassValue, 'bass')" />
     </div>
 
     <div class="neural-tube-container tube-mid">
-      <NeuralTube :width="72" :height="120" :rate="normalizeValue(midValue, 'mid')" />
+      <NeuralTube :width="102" :height="160" :rate="normalizeValue(midValue, 'mid')" />
     </div>
 
     <div class="neural-tube-container tube-treble">
-      <NeuralTube :width="72" :height="120" :rate="normalizeValue(trebleValue, 'treble')" />
+      <NeuralTube :width="102" :height="160" :rate="normalizeValue(trebleValue, 'treble')" />
     </div>
 
     <div class="neural-tube-container tube-volume">
-      <NeuralTube :width="72" :height="120" :rate="normalizeValue(outputLevelValue, 'output_level')" />
+      <NeuralTube :width="102" :height="160" :rate="normalizeValue(outputLevelValue, 'output_level')" />
     </div>
     <div class="control-knobs">
-      <UIKnob class="knob-gain touchable" :indicatorOffset="20" :size="90" :model-value="inputLevelValue" :min="inputLevelMin" :max="inputLevelMax" @change="onGainChange" />
-      <UIKnob class="knob-bass touchable" :indicatorOffset="20" :size="90" :model-value="bassValue" :min="bassMin" :max="bassMax" @change="onBassChange" />
-      <UIKnob class="knob-mid touchable" :indicatorOffset="20" :size="90" :model-value="midValue" :min="midMin" :max="midMax" @change="onMidChange" />
-      <UIKnob class="knob-treble touchable" :indicatorOffset="20" :size="90" :model-value="trebleValue" :min="trebleMin" :max="trebleMax" @change="onTrebleChange" />
-      <UIKnob class="knob-volume touchable" :indicatorOffset="20" :size="90" :model-value="outputLevelValue" :min="outputLevelMin" :max="outputLevelMax" @change="onVolumeChange" />
+      <UIKnob class="knob-gain touchable" :indicatorOffset="20" :size="92" :model-value="inputLevelValue" :min="inputLevelMin" :max="inputLevelMax" @change="onGainChange" />
+      <UIKnob class="knob-bass touchable" :indicatorOffset="20" :size="92" :model-value="bassValue" :min="bassMin" :max="bassMax" @change="onBassChange" />
+      <UIKnob class="knob-mid touchable" :indicatorOffset="20" :size="92" :model-value="midValue" :min="midMin" :max="midMax" @change="onMidChange" />
+      <UIKnob class="knob-treble touchable" :indicatorOffset="20" :size="92" :model-value="trebleValue" :min="trebleMin" :max="trebleMax" @change="onTrebleChange" />
+      <UIKnob class="knob-volume touchable" :indicatorOffset="20" :size="92" :model-value="outputLevelValue" :min="outputLevelMin" :max="outputLevelMax" @change="onVolumeChange" />
     </div>
 
     <!-- File Browser Modal -->
@@ -418,9 +418,9 @@ onUnmounted(() => {
 <style>
 .nam-ui .model-display {
   position: absolute;
-  top: 56px;
-  left: 240px;
-  width: 700px;
+  top: 72px;
+  left: 248px;
+  width: 880px;
   height: 80px;
   display: flex;
   align-items: center;
@@ -474,33 +474,33 @@ onUnmounted(() => {
 }
 
 .nam-ui .tube-gain {
-  top: 265px;
-  left: 463px;
+  top: 272px;
+  left: 322px;
 }
 
 .nam-ui .tube-bass {
-  top: 265px;
-  left: 670px;
+  top: 272px;
+  left: 560px;
 }
 
 .nam-ui .tube-mid {
-  top: 265px;
-  left: 869px;
+  top: 272px;
+  left: 806px;
 }
 
 .nam-ui .tube-treble {
-  top: 265px;
-  left: 1058px;
+  top: 272px;
+  left: 1048px;
 }
 
 .nam-ui .tube-volume {
-  top: 265px;
-  left: 1270px;
+  top: 272px;
+  left: 1290px;
 }
 
 .nam-ui .control-knobs {
   position: absolute;
-  top: 465px;
+  top: 552px;
   left: 0px;
   display: block;
 }
@@ -511,23 +511,23 @@ onUnmounted(() => {
 }
 
 .nam-ui .control-knobs .knob-gain {
-  left: 335px;
+  left: 280px;
 }
 
 .nam-ui .control-knobs .knob-bass {
-  left: 594px;
+  left: 540px;
 }
 
 .nam-ui .control-knobs .knob-mid {
-  left: 844px;
+  left: 798px;
 }
 
 .nam-ui .control-knobs .knob-treble {
-  left: 1095px;
+  left: 1057px;
 }
 
 .nam-ui .control-knobs .knob-volume {
-  left: 1367px;
+  left: 1314px;
 }
 
 .nam-ui .control-knobs .knob-arc {
@@ -538,6 +538,6 @@ onUnmounted(() => {
 }
 
 .nam-ui .control-knobs .knob-indicator {
-  background-color: #000;
+  background-color: #FFF;
 }
 </style>
