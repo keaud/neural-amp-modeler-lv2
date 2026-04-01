@@ -1,30 +1,34 @@
 <template>
   <div class="nam-ui">
-    <img src="/Factory/Devices/NAM/ui/nam-ui.jpg" alt="NAM UI" class="full-screen-image" />
+    <!-- Preload the off image so toggling bypass is instant -->
+    <link rel="preload" as="image" href="/Factory/Devices/NAM/ui/nam-ui-off.jpg" />
+    <img :src="isBypassed ? '/Factory/Devices/NAM/ui/nam-ui-off.jpg' : '/Factory/Devices/NAM/ui/nam-ui.jpg'" alt="NAM UI" class="full-screen-image" />
 
     <div class="model-display" @click="openModelBrowser">
-      <span class="model-label">{{ currentModel || 'No Model Loaded' }}</span>
+      <span v-if="!isBypassed" class="model-label">{{ currentModel || 'No Model Loaded' }}</span>
     </div>
 
-    <div class="neural-tube-container tube-gain">
-      <NeuralTube :width="102" :height="160" :rate="normalizeValue(inputLevelValue, 'input_level')" />
-    </div>
+    <template v-if="!isBypassed">
+      <div class="neural-tube-container tube-gain">
+        <NeuralTube :width="102" :height="160" :rate="normalizeValue(inputLevelValue, 'input_level')" />
+      </div>
 
-    <div class="neural-tube-container tube-bass">
-      <NeuralTube :width="102" :height="160" :rate="normalizeValue(bassValue, 'bass')" />
-    </div>
+      <div class="neural-tube-container tube-bass">
+        <NeuralTube :width="102" :height="160" :rate="normalizeValue(bassValue, 'bass')" />
+      </div>
 
-    <div class="neural-tube-container tube-mid">
-      <NeuralTube :width="102" :height="160" :rate="normalizeValue(midValue, 'mid')" />
-    </div>
+      <div class="neural-tube-container tube-mid">
+        <NeuralTube :width="102" :height="160" :rate="normalizeValue(midValue, 'mid')" />
+      </div>
 
-    <div class="neural-tube-container tube-treble">
-      <NeuralTube :width="102" :height="160" :rate="normalizeValue(trebleValue, 'treble')" />
-    </div>
+      <div class="neural-tube-container tube-treble">
+        <NeuralTube :width="102" :height="160" :rate="normalizeValue(trebleValue, 'treble')" />
+      </div>
 
-    <div class="neural-tube-container tube-volume">
-      <NeuralTube :width="102" :height="160" :rate="normalizeValue(outputLevelValue, 'output_level')" />
-    </div>
+      <div class="neural-tube-container tube-volume">
+        <NeuralTube :width="102" :height="160" :rate="normalizeValue(outputLevelValue, 'output_level')" />
+      </div>
+    </template>
     <div class="control-knobs">
       <UIKnob class="knob-gain touchable" :indicatorOffset="20" :size="92" :model-value="inputLevelValue" :min="inputLevelMin" :max="inputLevelMax" @change="onGainChange" />
       <UIKnob class="knob-bass touchable" :indicatorOffset="20" :size="92" :model-value="bassValue" :min="bassMin" :max="bassMax" @change="onBassChange" />
@@ -32,6 +36,9 @@
       <UIKnob class="knob-treble touchable" :indicatorOffset="20" :size="92" :model-value="trebleValue" :min="trebleMin" :max="trebleMax" @change="onTrebleChange" />
       <UIKnob class="knob-volume touchable" :indicatorOffset="20" :size="92" :model-value="outputLevelValue" :min="outputLevelMin" :max="outputLevelMax" @change="onVolumeChange" />
     </div>
+
+    <!-- Power switch hitbox -->
+    <div class="power-switch touchable" @click="toggleBypass"></div>
 
     <!-- File Browser Modal -->
     <Teleport to="body">
@@ -64,6 +71,16 @@ const encoderUnsubscribes = ref([]);
 
 const sdk = window.signalSDK;
 const hardware = useHardware();
+
+// Preload the off image so it's cached before first bypass toggle
+const offImage = new Image();
+offImage.src = '/Factory/Devices/NAM/ui/nam-ui-off.jpg';
+
+// Bypass state
+const isBypassed = computed(() => {
+  const device = sdk?.getDeviceInstance(props.instanceId);
+  return (device?.parameterValues?.['device.bypassed'] ?? 0) >= 0.5;
+});
 
 // Get parameter values reactively from device in globalState
 const inputLevelValue = computed(() => {
@@ -207,6 +224,15 @@ function onTrebleChange(event) {
   if (device?.parameterValues) {
     device.parameterValues['treble'] = event.value;
     setEncoderLedWithBrightness(3, normalizeValue(event.value, 'treble'));
+  }
+}
+
+// Toggle bypass state
+function toggleBypass() {
+  const device = sdk?.getDeviceInstance(props.instanceId);
+  if (device?.parameterValues) {
+    const current = device.parameterValues['device.bypassed'] ?? 0;
+    device.parameterValues['device.bypassed'] = current >= 0.5 ? 0 : 1;
   }
 }
 
@@ -528,6 +554,16 @@ onUnmounted(() => {
 
 .nam-ui .control-knobs .knob-volume {
   left: 1314px;
+}
+
+.nam-ui .power-switch {
+  position: absolute;
+  top: 560px;
+  left: 1500px;
+  width: 150px;
+  height: 140px;
+  z-index: 20;
+  cursor: pointer;
 }
 
 .nam-ui .control-knobs .knob-arc {
