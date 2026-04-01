@@ -2,7 +2,8 @@
   <div class="nam-ui">
     <!-- Preload the off image so toggling bypass is instant -->
     <link rel="preload" as="image" href="/Factory/Devices/NAM/ui/nam-ui-off.jpg" />
-    <img :src="isBypassed ? '/Factory/Devices/NAM/ui/nam-ui-off.jpg' : '/Factory/Devices/NAM/ui/nam-ui.jpg'" alt="NAM UI" class="full-screen-image" />
+    <img src="/Factory/Devices/NAM/ui/nam-ui.jpg" alt="NAM UI" class="full-screen-image" />
+    <div class="bypass-overlay" :class="{ active: isBypassed }"></div>
 
     <div class="model-display" @click="openModelBrowser">
       <span v-if="!isBypassed" class="model-label">{{ currentModel || 'No Model Loaded' }}</span>
@@ -480,6 +481,24 @@ onUnmounted(() => {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+}
+
+.nam-ui .bypass-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('/Factory/Devices/NAM/ui/nam-ui-off.jpg') center / cover no-repeat;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  will-change: opacity;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.nam-ui .bypass-overlay.active {
+  opacity: 1;
 }
 
 .nam-ui .full-screen-image {

@@ -61,7 +61,7 @@ class Particle {
     this.speed = (Math.random() * 0.6 + 0.4) * config.speed;
     this.swirlSpeed = (Math.random() * 0.6 + 0.4) * config.swirl;
     this.alpha = 0;
-    this.size = Math.random() * 1.2 + 0.6;
+    this.size = Math.random() * 1.8 + 0.6;
     this.yOffset = Math.random() * 2 - 1;
     this.yDrift =
       (Math.random() * 0.4 + 0.1) * (Math.random() < 0.5 ? -1 : 1);
