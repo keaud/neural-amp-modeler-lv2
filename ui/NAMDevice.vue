@@ -55,7 +55,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import NeuralTube from './NeuralTube.vue';
 import {
   useHardware,
-  updateEncoderLedsFromAssignments,
+  pushLedLayer,
   scaleEncoderValue,
   normalizeValue as normalizeEncoderValue,
 } from 'signalSDK';
@@ -72,6 +72,7 @@ const encoderUnsubscribes = ref([]);
 
 const sdk = window.signalSDK;
 const hardware = useHardware();
+let ledHandle = null;
 
 // Preload the off image so it's cached before first bypass toggle
 const offImage = new Image();
@@ -356,6 +357,7 @@ function setupEncoderSubscriptions() {
 // Set a single encoder LED with brightness-scaled cyan
 // brightness is 0-1, scales the base cyan color accordingly
 function setEncoderLedWithBrightness(encoderIndex, brightness) {
+  if (!ledHandle) return;
   // Base RGB for cyan (#008B8B)
   const baseR = 0;
   const baseG = 139;
@@ -369,41 +371,49 @@ function setEncoderLedWithBrightness(encoderIndex, brightness) {
   const g = Math.round(baseG * clampedBrightness);
   const b = Math.round(baseB * clampedBrightness);
 
-  hardware.setEncoderLed(encoderIndex, r, g, b, 0)
-    .then(() => {
-      console.log(`[NAM] Set encoder ${encoderIndex} LED brightness to ${Math.round(clampedBrightness * 100)}%`);
-    })
-    .catch(err => {
-      console.warn(`[NAM] Failed to set encoder ${encoderIndex} LED:`, err);
-    });
+  ledHandle.setEncoderLed(encoderIndex, r, g, b, 0);
 }
 
 // Update all encoder LEDs based on current parameter values
 function updateAllEncoderLeds() {
+  if (!ledHandle) return;
   const device = sdk?.getDeviceInstance(props.instanceId);
   if (!device) return;
 
-  // Encoder 0: input_level
-  const inputVal = normalizeValue(device.parameterValues?.['input_level'] ?? 0, 'input_level');
-  setEncoderLedWithBrightness(0, inputVal);
+  // Base cyan color (#008B8B)
+  const baseR = 0, baseG = 139, baseB = 139;
+  const params = [
+    { name: 'input_level', encoder: 0 },
+    { name: 'bass', encoder: 1 },
+    { name: 'mid', encoder: 2 },
+    { name: 'treble', encoder: 3 },
+    { name: 'output_level', encoder: 4 },
+  ];
 
-  // Encoder 1: bass
-  setEncoderLedWithBrightness(1, normalizeValue(device.parameterValues?.['bass'] ?? 0, 'bass'));
-
-  // Encoder 2: mid
-  setEncoderLedWithBrightness(2, normalizeValue(device.parameterValues?.['mid'] ?? 0, 'mid'));
-
-  // Encoder 3: treble
-  setEncoderLedWithBrightness(3, normalizeValue(device.parameterValues?.['treble'] ?? 0, 'treble'));
-
-  // Encoder 4: output_level
-  const outputVal = normalizeValue(device.parameterValues?.['output_level'] ?? 0, 'output_level');
-  setEncoderLedWithBrightness(4, outputVal);
+  const leds = [];
+  for (const { name, encoder } of params) {
+    const brightness = Math.max(0, Math.min(1, normalizeValue(device.parameterValues?.[name] ?? 0, name)));
+    leds.push({
+      encoder_id: encoder,
+      r: Math.round(baseR * brightness),
+      g: Math.round(baseG * brightness),
+      b: Math.round(baseB * brightness),
+      w: 0
+    });
+  }
+  // Encoders 5-9: unused, turn off
+  for (let i = 5; i < 10; i++) {
+    leds.push({ encoder_id: i, r: 0, g: 0, b: 0, w: 0 });
+  }
+  ledHandle.setEncoderLeds(leds);
 }
 
 // Initialize component
 onMounted(async () => {
   try {
+    // Claim LED ownership for the NAM device UI
+    ledHandle = pushLedLayer('nam-device', () => updateAllEncoderLeds());
+
     // Set encoder LEDs to NAM-specific color with brightness based on values
     updateAllEncoderLeds();
 
@@ -437,8 +447,10 @@ onUnmounted(() => {
   encoderUnsubscribes.value.forEach(unsub => unsub?.());
   encoderUnsubscribes.value = [];
 
-  // Restore footswitch LED colors
-  updateEncoderLedsFromAssignments();
+  if (ledHandle) {
+    ledHandle.release();
+    ledHandle = null;
+  }
 });
 </script>
 
