@@ -58,6 +58,7 @@ import {
   pushLedLayer,
   scaleEncoderValue,
   normalizeValue as normalizeEncoderValue,
+  ledBrightness,
 } from 'signalSDK';
 
 const props = defineProps({
@@ -355,21 +356,18 @@ function setupEncoderSubscriptions() {
 }
 
 // Set a single encoder LED with brightness-scaled cyan
-// brightness is 0-1, scales the base cyan color accordingly
-function setEncoderLedWithBrightness(encoderIndex, brightness) {
+// normalized is 0-1 (linear parameter position), perceptual curve applied via ledBrightness
+function setEncoderLedWithBrightness(encoderIndex, normalized) {
   if (!ledHandle) return;
   // Base RGB for cyan (#008B8B)
   const baseR = 0;
   const baseG = 139;
   const baseB = 139;
 
-  // Clamp brightness to 0-1
-  const clampedBrightness = Math.max(0, Math.min(1, brightness));
-
-  // Scale RGB by brightness
-  const r = Math.round(baseR * clampedBrightness);
-  const g = Math.round(baseG * clampedBrightness);
-  const b = Math.round(baseB * clampedBrightness);
+  const brightness = ledBrightness(normalized);
+  const r = Math.round(baseR * brightness);
+  const g = Math.round(baseG * brightness);
+  const b = Math.round(baseB * brightness);
 
   ledHandle.setEncoderLed(encoderIndex, r, g, b, 0);
 }
@@ -392,7 +390,8 @@ function updateAllEncoderLeds() {
 
   const leds = [];
   for (const { name, encoder } of params) {
-    const brightness = Math.max(0, Math.min(1, normalizeValue(device.parameterValues?.[name] ?? 0, name)));
+    const normalized = Math.max(0, Math.min(1, normalizeValue(device.parameterValues?.[name] ?? 0, name)));
+    const brightness = ledBrightness(normalized);
     leds.push({
       encoder_id: encoder,
       r: Math.round(baseR * brightness),
