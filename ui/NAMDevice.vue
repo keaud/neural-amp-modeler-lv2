@@ -548,6 +548,7 @@ onUnmounted(() => {
   top: 552px;
   left: 0px;
   display: block;
+  z-index: 2;
 }
 
 .nam-ui .control-knobs .knob-container {
