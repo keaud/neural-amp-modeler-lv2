@@ -4,7 +4,6 @@
   "version": 1,
   "params": {
     "input_level": 0,
-    "output_level": 0,
     "model": "Models/Factory/Amps/Traynor YGL3 Boost.nam"
   },
   "metadata": {

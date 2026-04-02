@@ -93,7 +93,7 @@ const inputLevelValue = computed(() => {
 
 const outputLevelValue = computed(() => {
   const device = sdk?.getDeviceInstance(props.instanceId);
-  return device?.parameterValues?.['output_level'] ?? 0;
+  return device?.parameterValues?.['device.volume'] ?? 1.0;
 });
 
 const bassValue = computed(() => {
@@ -138,7 +138,7 @@ function getParameterMetadata(paramName) {
 }
 
 const inputLevelMeta = computed(() => getParameterMetadata('input_level'));
-const outputLevelMeta = computed(() => getParameterMetadata('output_level'));
+const outputLevelMeta = computed(() => ({ min: 0.0, max: 2.0 }));
 const bassMeta = computed(() => getParameterMetadata('bass'));
 const midMeta = computed(() => getParameterMetadata('mid'));
 const trebleMeta = computed(() => getParameterMetadata('treble'));
@@ -164,7 +164,7 @@ function normalizeValue(value, paramName) {
       break;
     case 'output_level':
       min = outputLevelMeta.value?.min ?? 0;
-      max = outputLevelMeta.value?.max ?? 1;
+      max = outputLevelMeta.value?.max ?? 2;
       break;
     case 'bass':
       min = bassMeta.value?.min ?? -20;
@@ -200,7 +200,7 @@ function onGainChange(event) {
 function onVolumeChange(event) {
   const device = sdk.getDeviceInstance(props.instanceId);
   if (device?.parameterValues) {
-    device.parameterValues['output_level'] = event.value;
+    device.parameterValues['device.volume'] = event.value;
     // Update encoder LED brightness
     setEncoderLedWithBrightness(4, normalizeValue(event.value, 'output_level'));
   }
@@ -312,12 +312,12 @@ function setupEncoderSubscriptions() {
   });
   encoderUnsubscribes.value.push(unsubInput);
 
-  // Encoder 4 (fifth knob) - control output_level
+  // Encoder 4 (fifth knob) - control device.volume
   const unsubOutput = hardware.onEncoderRotate(4, (event) => {
-    const currentValue = device.parameterValues['output_level'] ?? 0;
+    const currentValue = device.parameterValues['device.volume'] ?? 1.0;
     const newValue = scaleEncoderValue(currentValue, event.delta, outputLevelMin.value, outputLevelMax.value);
-    device.parameterValues['output_level'] = newValue;
-    console.log('[NAM] Updated output_level to', newValue);
+    device.parameterValues['device.volume'] = newValue;
+    console.log('[NAM] Updated device.volume to', newValue);
     setEncoderLedWithBrightness(4, normalizeValue(newValue, 'output_level'));
   });
   encoderUnsubscribes.value.push(unsubOutput);
@@ -385,12 +385,13 @@ function updateAllEncoderLeds() {
     { name: 'bass', encoder: 1 },
     { name: 'mid', encoder: 2 },
     { name: 'treble', encoder: 3 },
-    { name: 'output_level', encoder: 4 },
+    { name: 'device.volume', encoder: 4, normalizeAs: 'output_level' },
   ];
 
   const leds = [];
-  for (const { name, encoder } of params) {
-    const normalized = Math.max(0, Math.min(1, normalizeValue(device.parameterValues?.[name] ?? 0, name)));
+  for (const { name, encoder, normalizeAs } of params) {
+    const defaultVal = name === 'device.volume' ? 1.0 : 0;
+    const normalized = Math.max(0, Math.min(1, normalizeValue(device.parameterValues?.[name] ?? defaultVal, normalizeAs || name)));
     const brightness = ledBrightness(normalized);
     leds.push({
       encoder_id: encoder,

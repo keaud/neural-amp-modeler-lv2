@@ -30,16 +30,6 @@
       "description": "Input level in decibels",
       "displayName": "Input Lvl"
     },
-    "output_level": {
-      "sourcePortURI": "http://github.com/mikeoliphant/neural-amp-modeler-lv2#output_level",
-      "min": -20.0,
-      "max": 20.0,
-      "type": "float",
-      "default": 0.0,
-      "increment": 0.1,
-      "description": "Output level in decibels",
-      "displayName": "Output Lvl"
-    },
     "bass": {
       "sourcePortURI": "http://github.com/mikeoliphant/neural-amp-modeler-lv2#bass",
       "min": -20.0,
