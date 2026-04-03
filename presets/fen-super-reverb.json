@@ -1,0 +1,15 @@
+{
+  "presetName": "Fen Super Reverb Vol 3",
+  "deviceId": "com.signal.neural_amp_modeler",
+  "version": 1,
+  "params": {
+    "input_level": 0,
+    "model": "Models/Factory/Combos/Fender/Super Reverb Vol 3.nam"
+  },
+  "metadata": {
+    "author": "Dirty Freq.",
+    "description": "Fen Super Reverb combo at volume 3 - sweet spot clean tone",
+    "tags": ["combo", "clean"],
+    "createdAt": "2026-04-03T00:00:00"
+  }
+}

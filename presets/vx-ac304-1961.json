@@ -1,0 +1,15 @@
+{
+  "presetName": "VX AC304 1961 EF86 2x12",
+  "deviceId": "com.signal.neural_amp_modeler",
+  "version": 1,
+  "params": {
+    "input_level": 0,
+    "model": "Models/Factory/Combos/Vox/AC304 1961 EF86 2x12.nam"
+  },
+  "metadata": {
+    "author": "Dirty Freq.",
+    "description": "VX AC304 1961 EF86 combo 2x12 - classic British chime",
+    "tags": ["combo", "vintage"],
+    "createdAt": "2026-04-03T00:00:00"
+  }
+}

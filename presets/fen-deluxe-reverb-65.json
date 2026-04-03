@@ -1,0 +1,15 @@
+{
+  "presetName": "Fen Deluxe Reverb 65 Reissue",
+  "deviceId": "com.signal.neural_amp_modeler",
+  "version": 1,
+  "params": {
+    "input_level": 0,
+    "model": "Models/Factory/Combos/Fender/Deluxe Reverb 65 Reissue.nam"
+  },
+  "metadata": {
+    "author": "Dirty Freq.",
+    "description": "Fen Deluxe Reverb 65 Reissue combo - classic American clean",
+    "tags": ["combo", "clean"],
+    "createdAt": "2026-04-03T00:00:00"
+  }
+}

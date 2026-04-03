@@ -1,0 +1,15 @@
+{
+  "presetName": "Traynor YGL3 Alt",
+  "deviceId": "com.signal.neural_amp_modeler",
+  "version": 1,
+  "params": {
+    "input_level": 0,
+    "model": "Models/Factory/Amps/TraynorYGL3.nam"
+  },
+  "metadata": {
+    "author": "Dirty Freq.",
+    "description": "Alternate Traynor YGL3 amp capture",
+    "tags": ["amp", "clean"],
+    "createdAt": "2026-04-03T00:00:00"
+  }
+}

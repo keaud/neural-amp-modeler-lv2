@@ -1,0 +1,15 @@
+{
+  "presetName": "Trayn Mk 3",
+  "deviceId": "com.signal.neural_amp_modeler",
+  "version": 1,
+  "params": {
+    "input_level": 0,
+    "model": "Models/Factory/Amps/Trayn Mk 3.nam"
+  },
+  "metadata": {
+    "author": "Dirty Freq.",
+    "description": "Trayn Mk 3 amp model - clean British tone",
+    "tags": ["amp", "clean"],
+    "createdAt": "2026-04-03T00:00:00"
+  }
+}

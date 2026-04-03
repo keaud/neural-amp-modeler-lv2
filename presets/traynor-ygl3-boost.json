@@ -1,0 +1,15 @@
+{
+  "presetName": "Traynor YGL3 Boost",
+  "deviceId": "com.signal.neural_amp_modeler",
+  "version": 1,
+  "params": {
+    "input_level": 0,
+    "model": "Models/Factory/Amps/Traynor YGL3 Boost.nam"
+  },
+  "metadata": {
+    "author": "Dirty Freq.",
+    "description": "Traynor YGL3 amp with boosted input for more drive",
+    "tags": ["amp", "boost"],
+    "createdAt": "2026-04-03T00:00:00"
+  }
+}

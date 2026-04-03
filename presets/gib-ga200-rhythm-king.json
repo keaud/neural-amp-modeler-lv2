@@ -1,0 +1,15 @@
+{
+  "presetName": "Gib GA-200 Rhythm King 2x12",
+  "deviceId": "com.signal.neural_amp_modeler",
+  "version": 1,
+  "params": {
+    "input_level": 0,
+    "model": "Models/Factory/Combos/Gibson/Gibs GA-200 Rhythm King 2x12.nam"
+  },
+  "metadata": {
+    "author": "Dirty Freq.",
+    "description": "Gib GA-200 Rhythm King 2x12 combo - vintage rhythm tone",
+    "tags": ["combo", "vintage"],
+    "createdAt": "2026-04-03T00:00:00"
+  }
+}

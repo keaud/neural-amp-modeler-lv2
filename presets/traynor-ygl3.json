@@ -1,0 +1,15 @@
+{
+  "presetName": "Traynor YGL3",
+  "deviceId": "com.signal.neural_amp_modeler",
+  "version": 1,
+  "params": {
+    "input_level": 0,
+    "model": "Models/Factory/Amps/Traynor YGL3.nam"
+  },
+  "metadata": {
+    "author": "Dirty Freq.",
+    "description": "Traynor YGL3 amp model - warm vintage Canadian tone",
+    "tags": ["amp", "clean"],
+    "createdAt": "2026-04-03T00:00:00"
+  }
+}
