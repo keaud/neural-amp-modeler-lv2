@@ -2,12 +2,13 @@
   "presetName": "Default",
   "deviceId": "com.signal.neural_amp_modeler",
   "version": 1,
+  "displayOrder": 0,  
   "params": {
-    "input_level": 0,
-    "model": "Models/Factory/Amps/Traynor YGL3 Boost.nam"
+    "input_level": 0
   },
   "metadata": {
-    "author": "Factory",
+      "author": "Dirty Freq.",
+      "description": "Set up with default settings, choose any amp or combo profile on the next step and start rockin!",
     "tags": [
       "factory",
       "default"

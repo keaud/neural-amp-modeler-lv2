@@ -16,6 +16,8 @@
     "model": {
       "sourcePortURI": "http://github.com/mikeoliphant/neural-amp-modeler-lv2#model",
       "type": "path",
+      "required": true,
+      "browseRoot": "/Models",
       "displayName": "Neural Model",
       "description": "Path to the .nam neural amp model file",
       "fileTypes": ["nam", "nammodel", "json", "aidax", "aidadspmodel"]
