@@ -339,8 +339,9 @@ namespace NAM {
 			modelLoudnessAdjustmentDB = currentModel->GetRecommendedOutputDBAdjustment();
 		}
 
-		// Apply tone stack EQ
-		toneStack.update(*ports.bass, *ports.bass_freq, *ports.mid, *ports.mid_freq, *ports.treble, *ports.treble_freq);
+		// Apply tone stack EQ + HPF/LPF
+		toneStack.update(*ports.bass, *ports.bass_freq, *ports.mid, *ports.mid_freq, *ports.treble, *ports.treble_freq,
+		                 *ports.hpf_freq, *ports.lpf_freq);
 		toneStack.process(ports.audio_out, n_samples);
 
 		// Convert output level from db

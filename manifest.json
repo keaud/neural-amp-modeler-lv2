@@ -104,6 +104,28 @@
       "increment": 0.01,
       "description": "Pick attack transient shaping. Positive boosts attack, negative softens it.",
       "displayName": "Pick Attack"
+    },
+    "hpf_freq": {
+      "sourcePortURI": "http://github.com/mikeoliphant/neural-amp-modeler-lv2#hpf_freq",
+      "min": 20.0,
+      "max": 500.0,
+      "type": "float",
+      "default": 20.0,
+      "increment": 1.0,
+      "logarithmic": true,
+      "description": "High-pass filter cutoff frequency in Hz",
+      "displayName": "HPF"
+    },
+    "lpf_freq": {
+      "sourcePortURI": "http://github.com/mikeoliphant/neural-amp-modeler-lv2#lpf_freq",
+      "min": 1000.0,
+      "max": 20000.0,
+      "type": "float",
+      "default": 20000.0,
+      "increment": 1.0,
+      "logarithmic": true,
+      "description": "Low-pass filter cutoff frequency in Hz",
+      "displayName": "LPF"
     }
   },
   "customUI": {

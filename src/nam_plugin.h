@@ -70,6 +70,8 @@ namespace NAM {
 			float* treble;
 			float* treble_freq;
 			float* pick;
+			float* hpf_freq;
+			float* lpf_freq;
 		};
 
 		Ports ports = {};
